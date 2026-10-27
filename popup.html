@@ -9,7 +9,7 @@
   <body>
     <main>
       <header class="title-row">
-        <h1>VGMS填报助手</h1>
+        <h1 hidden>VGMS填报助手</h1>
         <button id="mode-switch" class="icon-button" type="button"></button>
       </header>
       <p id="mode-hint" class="privacy-note" hidden></p>
@@ -123,9 +123,16 @@
         role="tabpanel"
         aria-labelledby="tab-taskbook"
         hidden>
-        <label for="taskbook-file">任务书模板（.md）</label>
-        <input id="taskbook-file" type="file" accept=".md,.markdown,.txt">
-        <pre id="taskbook-preview" class="privacy-note"></pre>
+        <div class="template-picker">
+          <button id="taskbook-import" class="secondary template-picker-button" type="button">导入 Markdown 模板</button>
+        </div>
+        <input id="taskbook-file" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden>
+        <label for="taskbook-text">任务书内容</label>
+        <textarea
+          id="taskbook-text"
+          rows="11"
+          spellcheck="false"
+          placeholder="导入模板，或直接输入 / 粘贴任务书 Markdown：&#10;# 研究（设计）目的与任务&#10;# 基本要求&#10;# 进度安排（表格：序号 | 起止日期 | 任务）&#10;# 提交时间"></textarea>
         <div class="actions">
           <button id="taskbook-start" type="button">保存并等待填表</button>
           <button id="taskbook-cancel" class="secondary" type="button">取消等待</button>

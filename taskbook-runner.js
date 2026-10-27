@@ -20,14 +20,16 @@
       pending = null;
       try {
         const failed = await form.fill(doc, data);
-        await store.savePending(null);
-        if (failed.length) {
-          notify(`部分内容未能填写：${failed.join("、")}，请手动处理。`, true);
-        } else {
-          notify("任务书已填写，请检查后自行提交。");
-        }
+        const ok = failed.length === 0;
+        const message = ok
+          ? "任务书已填写完成，请检查后自行提交。"
+          : `部分内容未能填写：${failed.join("、")}，请手动处理。`;
+        await store.saveResult({ ok, message });
+        notify(message, !ok);
       } catch (error) {
-        notify(`自动填写失败：${error.message}`, true);
+        const message = `自动填写失败：${error.message}`;
+        await store.saveResult({ ok: false, message }).catch(() => {});
+        notify(message, true);
       } finally {
         busy = false;
       }
@@ -37,9 +39,6 @@
       pending = (await store.load()).pending;
       store.onChange((state) => {
         pending = state.pending;
-        if (!pending) {
-          notify("任务书自动填写已取消。");
-        }
       });
       timer.setInterval(() => void tick(), intervalMs);
     }

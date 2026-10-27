@@ -225,7 +225,7 @@ button.secondary:hover {
 .title-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -254,5 +254,13 @@ button.secondary:hover {
 }
 
 .title-row[hidden] {
+  display: none;
+}
+
+button[hidden] {
+  display: none;
+}
+
+h1[hidden] {
   display: none;
 }
