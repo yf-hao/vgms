@@ -9,6 +9,11 @@ const templatePickerButton = document.querySelector("#template-picker-button");
 const templatePickerMenu = document.querySelector("#template-picker-menu");
 const importSingleButton = document.querySelector("#import-single");
 const importFolderButton = document.querySelector("#import-folder");
+const loginSchool = document.querySelector("#login-school");
+const loginAccount = document.querySelector("#login-account");
+const loginPassword = document.querySelector("#login-password");
+const saveLoginButton = document.querySelector("#save-login");
+const loginStatus = document.querySelector("#login-status");
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const panels = [...document.querySelectorAll('[role="tabpanel"]')];
 let batchTemplates = null;
@@ -100,6 +105,11 @@ function showStatus(message, isError = false) {
   status.classList.toggle("error", isError);
 }
 
+function showLoginStatus(message, isError = false) {
+  loginStatus.textContent = message;
+  loginStatus.classList.toggle("error", isError);
+}
+
 function normalizeSection(value) {
   const lines = value
     .replace(/\r\n?/g, "\n")
@@ -170,12 +180,19 @@ function parseTextFields(value) {
 async function loadSavedData() {
   try {
     const stored = await chrome.storage.local.get([
+      "loginCredentials",
       "pendingFill",
       "batchActive",
       "batchQueue",
       "batchIndex",
       "awaitingNext"
     ]);
+    if (stored.loginCredentials) {
+      loginSchool.value = stored.loginCredentials.school || "";
+      loginAccount.value = stored.loginCredentials.account || "";
+      loginPassword.value = stored.loginCredentials.password || "";
+      showLoginStatus("已读取此浏览器中保存的登录信息。");
+    }
     if (stored.batchActive) {
       const total = stored.batchQueue?.length || 0;
       showStatus(
@@ -188,8 +205,31 @@ async function loadSavedData() {
     }
   } catch (error) {
     showStatus(`读取失败：${error.message}`, true);
+    showLoginStatus(`读取保存信息失败：${error.message}`, true);
   }
 }
+
+saveLoginButton.addEventListener("click", async () => {
+  const credentials = {
+    school: loginSchool.value.trim(),
+    account: loginAccount.value.trim(),
+    password: loginPassword.value
+  };
+  if (!credentials.school || !credentials.account || !credentials.password) {
+    showLoginStatus("请填写学校、账号和密码。", true);
+    return;
+  }
+
+  saveLoginButton.disabled = true;
+  try {
+    await chrome.storage.local.set({ loginCredentials: credentials });
+    showLoginStatus("登录信息已保存在此浏览器中。");
+  } catch (error) {
+    showLoginStatus(`保存登录信息失败：${error.message}`, true);
+  } finally {
+    saveLoginButton.disabled = false;
+  }
+});
 
 templateFile.addEventListener("change", async () => {
   const file = templateFile.files?.[0];

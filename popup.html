@@ -11,13 +11,21 @@
       <h1>VGMS填报助手</h1>
       <nav class="tabs" role="tablist" aria-label="功能">
         <button
-          id="tab-subject"
+          id="tab-login"
           class="tab"
           type="button"
           role="tab"
           aria-selected="true"
+          aria-controls="panel-login"
+          tabindex="0">登录</button>
+        <button
+          id="tab-subject"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
           aria-controls="panel-subject"
-          tabindex="0">课题</button>
+          tabindex="-1">课题</button>
         <button
           id="tab-topic"
           class="tab"
@@ -26,8 +34,31 @@
           aria-selected="false"
           aria-controls="panel-topic"
           tabindex="-1">选题</button>
+        <button
+          id="tab-taskbook"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-taskbook"
+          tabindex="-1">任务书</button>
       </nav>
-      <section id="panel-subject" role="tabpanel" aria-labelledby="tab-subject">
+      <section id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+        <label for="login-school">学校</label>
+        <input id="login-school" type="text" autocomplete="organization" placeholder="请输入学校名称">
+        <label for="login-account">账号</label>
+        <input id="login-account" type="text" autocomplete="username" placeholder="请输入登录账号">
+        <label for="login-password">密码</label>
+        <input id="login-password" type="password" autocomplete="current-password" placeholder="请输入登录密码">
+        <button id="save-login" type="button">保存登录信息</button>
+        <p id="login-status" role="status" aria-live="polite"></p>
+        <p class="privacy-note">信息保存在此浏览器的扩展本地存储中；登录页会自动填入并勾选协议，但不会自动提交。</p>
+      </section>
+      <section
+        id="panel-subject"
+        role="tabpanel"
+        aria-labelledby="tab-subject"
+        hidden>
         <div id="template-picker" class="template-picker">
           <button
             id="template-picker-button"
@@ -68,14 +99,41 @@
       </section>
       <section
         id="panel-topic"
-        class="placeholder"
         role="tabpanel"
         aria-labelledby="tab-topic"
         hidden>
-        <h2>选题</h2>
-        <p>选题功能后续开放。</p>
+        <label for="topic-comment">审核意见</label>
+        <textarea
+          id="topic-comment"
+          rows="5"
+          spellcheck="false"
+          placeholder="输入一次，后续所有选题审核都使用同一意见"></textarea>
+        <div class="actions">
+          <button id="topic-start" type="button">保存并等待审核</button>
+          <button id="topic-stop" class="secondary" type="button">停止填写</button>
+        </div>
+        <p id="topic-status" role="status" aria-live="polite"></p>
+      </section>
+      <section
+        id="panel-taskbook"
+        role="tabpanel"
+        aria-labelledby="tab-taskbook"
+        hidden>
+        <label for="taskbook-file">任务书模板（.md）</label>
+        <input id="taskbook-file" type="file" accept=".md,.markdown,.txt">
+        <pre id="taskbook-preview" class="privacy-note"></pre>
+        <div class="actions">
+          <button id="taskbook-start" type="button">保存并等待填表</button>
+          <button id="taskbook-cancel" class="secondary" type="button">取消等待</button>
+        </div>
+        <p id="taskbook-status" role="status" aria-live="polite"></p>
       </section>
     </main>
+    <script src="topic-review-settings.js"></script>
+    <script src="topic-popup.js"></script>
+    <script src="taskbook-parser.js"></script>
+    <script src="taskbook-store.js"></script>
+    <script src="taskbook-popup.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
