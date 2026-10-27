@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VGMS填报助手</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <h1>VGMS填报助手</h1>
+      <nav class="tabs" role="tablist" aria-label="功能">
+        <button
+          id="tab-subject"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-subject"
+          tabindex="0">课题</button>
+        <button
+          id="tab-topic"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-topic"
+          tabindex="-1">选题</button>
+      </nav>
+      <section id="panel-subject" role="tabpanel" aria-labelledby="tab-subject">
+        <div id="template-picker" class="template-picker">
+          <button
+            id="template-picker-button"
+            class="secondary template-picker-button"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="template-picker-menu">导入 Markdown 模板</button>
+          <div id="template-picker-menu" class="template-picker-menu" role="menu" hidden>
+            <button id="import-single" type="button" role="menuitem">导入单个模板</button>
+            <button id="import-folder" type="button" role="menuitem">导入文件夹（批量）</button>
+          </div>
+        </div>
+        <input
+          id="template-file"
+          type="file"
+          accept=".md,text/markdown,text/plain"
+          hidden>
+        <input
+          id="template-folder"
+          type="file"
+          webkitdirectory
+          directory
+          multiple
+          accept=".md,text/markdown"
+          hidden>
+        <label for="form-data">申报信息</label>
+        <textarea
+          id="form-data"
+          rows="11"
+          spellcheck="false"
+          placeholder="计算机科学与技术专业&#10;计算机科学与技术专业&#10;基于Spring Boot&#10;自选课题&#10;工程实践&#10;理科&#10;这个项目的选题背景是xxx，主要内容是XXX"></textarea>
+        <div class="actions">
+          <button id="save" type="button">保存并等待填表</button>
+          <button id="cancel" class="secondary" type="button">取消等待</button>
+        </div>
+        <p id="status" role="status" aria-live="polite"></p>
+      </section>
+      <section
+        id="panel-topic"
+        class="placeholder"
+        role="tabpanel"
+        aria-labelledby="tab-topic"
+        hidden>
+        <h2>选题</h2>
+        <p>选题功能后续开放。</p>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

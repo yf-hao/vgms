@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "VGMS填报助手",
+  "version": "0.3.0",
+  "description": "VGMS 表单填报工具，当前支持课题申报。",
+  "permissions": ["storage"],
+  "host_permissions": ["https://vgms.fanyu.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "VGMS填报助手",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://vgms.fanyu.com/*"],
+      "js": ["storage-client.js", "content.js", "batch.js"],
+      "all_frames": true,
+      "match_origin_as_fallback": true,
+      "run_at": "document_idle"
+    }
+  ]
+}
