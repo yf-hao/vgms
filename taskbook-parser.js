@@ -38,6 +38,11 @@
     return new Map([...sections].map(([key, lines]) => [key, lines.join("\n").trim()]));
   }
 
+  // 去掉空行：每个条目单独一行，整体视为一个段落。
+  function removeBlankLines(text) {
+    return text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).join("\n");
+  }
+
   // “2026年10月27日” 或 “2026-10-27” → “2026-10-27”
   function normalizeDate(text) {
     const match = text.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
@@ -73,8 +78,8 @@
     const data = {
       student: { name: meta.studentName || "", id: meta.studentId || "" },
       title: meta.thesisTitle || "",
-      purpose: sections.get(sectionNames.purpose) || "",
-      requirements: sections.get(sectionNames.requirements) || "",
+      purpose: removeBlankLines(sections.get(sectionNames.purpose) || ""),
+      requirements: removeBlankLines(sections.get(sectionNames.requirements) || ""),
       schedule: parseSchedule(sections.get(sectionNames.schedule) || ""),
       submitDate: normalizeDate(sections.get(sectionNames.submitDate) || "")
     };

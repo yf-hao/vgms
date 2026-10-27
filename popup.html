@@ -8,7 +8,11 @@
   </head>
   <body>
     <main>
-      <h1>VGMS填报助手</h1>
+      <header class="title-row">
+        <h1>VGMS填报助手</h1>
+        <button id="mode-switch" class="icon-button" type="button"></button>
+      </header>
+      <p id="mode-hint" class="privacy-note" hidden></p>
       <nav class="tabs" role="tablist" aria-label="功能">
         <button
           id="tab-login"
@@ -129,6 +133,7 @@
         <p id="taskbook-status" role="status" aria-live="polite"></p>
       </section>
     </main>
+    <script src="panel-mode.js"></script>
     <script src="topic-review-settings.js"></script>
     <script src="topic-popup.js"></script>
     <script src="taskbook-parser.js"></script>

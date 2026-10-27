@@ -1,5 +1,47 @@
 const storageBridgeNamespace = "vgms-batch-storage";
 
+const modeKey = "panelMode";
+const floatingNamespace = "vgms-floating-panel";
+
+// 侧边栏模式下由浏览器直接打开侧边栏（保留用户手势）；浮动模式下才会触发 onClicked。
+function applyMode(mode) {
+  chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: mode !== "float" })
+    .catch((error) => console.error("设置面板模式失败：", error));
+}
+
+async function loadMode() {
+  const stored = await chrome.storage.local.get(modeKey);
+  applyMode(stored[modeKey]);
+}
+
+chrome.runtime.onInstalled.addListener(() => void loadMode());
+chrome.runtime.onStartup.addListener(() => void loadMode());
+void loadMode();
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "local" && changes[modeKey]) {
+    applyMode(changes[modeKey].newValue);
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (
+    sender.id === chrome.runtime.id &&
+    message?.namespace === floatingNamespace &&
+    message.action === "open-side" &&
+    sender.tab
+  ) {
+    chrome.sidePanel.open({ tabId: sender.tab.id }).catch(() => {});
+  }
+});
+
+chrome.action.onClicked.addListener((tab) => {
+  chrome.tabs
+    .sendMessage(tab.id, { namespace: floatingNamespace, action: "open" }, { frameId: 0 })
+    .catch(() => {});
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (
     sender.id !== chrome.runtime.id ||

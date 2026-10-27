@@ -1,18 +1,31 @@
 {
   "manifest_version": 3,
   "name": "VGMS填报助手",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "description": "VGMS 登录与表单填报助手。",
-  "permissions": ["storage"],
+  "permissions": ["storage", "sidePanel"],
   "host_permissions": ["https://vgms.fanyu.com/*"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "VGMS填报助手",
-    "default_popup": "popup.html"
+    "default_title": "VGMS填报助手"
   },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.html"],
+      "matches": ["https://vgms.fanyu.com/*"]
+    }
+  ],
   "content_scripts": [
+    {
+      "matches": ["https://vgms.fanyu.com/*"],
+      "js": ["floating-panel.js"],
+      "run_at": "document_idle"
+    },
     {
       "matches": ["https://vgms.fanyu.com/*"],
       "js": ["login.js"],
