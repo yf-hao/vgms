@@ -3,58 +3,63 @@
   "name": "VGMS填报助手",
   "version": "0.8.0",
   "description": "VGMS 登录与表单填报助手。",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtO/AbiW4crnO1e42fOo+rDibFnV9bGYskmukEI/350f/yXPMEOoaMWsc3oSvqyIIAyZsOqYO1NSBGmNByKzjhbRcy0hvI03q7APlbJNG/pB9V8W3755EsCvYhjw4PeVvMXckE1xChme+ue5f0VkdU/rJC72GQnME1z7jVCVfHvNbk+nvGvH3W8d3/7lm7DcT0edCra3vzenIpfgJNeGw93VFcZ04dxngtKl9RNh6Cg6AXiJUndKQB31gpgnF1243SMwnfdeaOmK9mKLzwkwa/rLInCH3WvspeDIP70yK3/MaN9q1PIQIzcANl7y9p6wIH/kw3N4lYlR9ewWRnIRTPQIDAQAB",
   "permissions": ["storage", "sidePanel"],
   "host_permissions": ["https://vgms.fanyu.com/*"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background/background.js"
   },
   "action": {
     "default_title": "VGMS填报助手"
   },
   "side_panel": {
-    "default_path": "popup.html"
+    "default_path": "popup/popup.html"
   },
   "web_accessible_resources": [
     {
-      "resources": ["popup.html"],
+      "resources": ["popup/popup.html"],
       "matches": ["https://vgms.fanyu.com/*"]
     }
   ],
   "content_scripts": [
     {
       "matches": ["https://vgms.fanyu.com/*"],
-      "js": ["floating-panel.js"],
+      "js": ["content/floating-panel.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://vgms.fanyu.com/*"],
-      "js": ["login.js"],
+      "js": ["content/login.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://vgms.fanyu.com/admin/*"],
       "js": [
-        "topic-review-settings.js",
-        "topic-review-dialog.js",
-        "topic-review-form.js",
-        "topic-review-runner.js",
-        "topic-review-main.js"
+        "shared/topic-review-settings.js",
+        "content/topic-review/topic-review-dialog.js",
+        "content/topic-review/topic-review-form.js",
+        "content/topic-review/topic-review-runner.js",
+        "content/topic-review/topic-review-main.js"
       ],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://vgms.fanyu.com/admin/*"],
       "js": [
-        "taskbook-store.js",
-        "taskbook-form.js",
-        "taskbook-runner.js",
-        "taskbook-main.js"
+        "shared/taskbook-store.js",
+        "content/taskbook/taskbook-form.js",
+        "content/taskbook/taskbook-runner.js",
+        "content/taskbook/taskbook-main.js"
       ],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://vgms.fanyu.com/*"],
-      "js": ["storage-client.js", "content.js", "batch.js"],
+      "js": [
+        "content/shared/storage-client.js",
+        "content/subject/content.js",
+        "content/subject/batch.js"
+      ],
       "all_frames": true,
       "match_origin_as_fallback": true,
       "run_at": "document_idle"

@@ -103,7 +103,7 @@
     header.appendChild(actions);
 
     const frame = createElement("iframe", { flex: "1", border: "0", width: "100%" });
-    frame.src = chrome.runtime.getURL("popup.html");
+    frame.src = chrome.runtime.getURL("popup/popup.html");
     panel.append(header, frame);
     root.append(launcher, panel);
     document.documentElement.appendChild(root);

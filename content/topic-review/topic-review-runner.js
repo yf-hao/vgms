@@ -46,12 +46,13 @@
 
     function applySettings(next) {
       const justEnabled = next.enabled && !current.enabled;
+      const justDisabled = !next.enabled && current.enabled;
       current = next;
       if (justEnabled) {
         filledDocument = null;
         filledCount = 0;
       }
-      if (!next.enabled) {
+      if (justDisabled) {
         notify("选题审核自动填写已停止。");
       }
     }
