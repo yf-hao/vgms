@@ -99,6 +99,7 @@ test("ignores an indented blank paragraph", () => {
 
   const result = check(report);
   assert.equal(result.formatting.indentation.status, "pass");
+  assert.equal(result.formatting.blankParagraphs.status, "pass");
 });
 
 test("does not pass a section from a mention in unrelated body text", () => {
@@ -123,4 +124,34 @@ test("does not pass a heading without section content", () => {
 
   assert.equal(result.sections.find(({ id }) => id === "significance").status, "missing");
   assert.equal(result.sections.find(({ id }) => id === "purpose").status, "missing");
+});
+
+test("flags an empty paragraph before a numbered section heading", () => {
+  const result = check({
+    text: "三、研究思路\n思路内容\n\n四、研究方法\n方法内容",
+    paragraphs: [
+      paragraph("三、研究思路"),
+      paragraph("思路内容"),
+      paragraph(""),
+      paragraph("四、研究方法"),
+      paragraph("方法内容")
+    ]
+  });
+
+  assert.equal(result.formatting.blankParagraphs.status, "warning");
+  assert.match(result.formatting.blankParagraphs.message, /位于“四、研究方法/);
+});
+
+test("ignores empty paragraphs at the beginning and end of the editor", () => {
+  const result = check({
+    text: "\n一、研究意义\n正文\n",
+    paragraphs: [
+      paragraph(""),
+      paragraph("一、研究意义"),
+      paragraph("正文"),
+      paragraph("")
+    ]
+  });
+
+  assert.equal(result.formatting.blankParagraphs.status, "pass");
 });

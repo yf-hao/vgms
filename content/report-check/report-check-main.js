@@ -27,8 +27,7 @@
       .map((paragraph) => ({
         text: paragraph.innerText || paragraph.textContent || "",
         textIndent: getComputedStyle(paragraph).textIndent
-      }))
-      .filter(({ text }) => text.trim());
+      }));
     const text = body.innerText.trim();
     if (!text) {
       throw new Error("报告正文为空或尚未加载完成。");

@@ -65,8 +65,7 @@
         .map((paragraph) => ({
           text: String(paragraph?.text ?? ""),
           textIndent: String(paragraph?.textIndent ?? "0px")
-        }))
-        .filter((paragraph) => normalize(paragraph.text));
+        }));
     }
 
     return String(report?.text ?? "")
@@ -166,11 +165,36 @@
     const indented = paragraphs.filter(({ text, textIndent }) => {
       const normalizedText = normalize(text);
       const indent = Number.parseFloat(textIndent);
+      if (!normalizedText) {
+        return false;
+      }
       return (
         /^[\t \u00a0\u3000]/.test(text) ||
-        (Number.isFinite(indent) && indent !== 0 && normalizedText.length > 0)
+        (Number.isFinite(indent) && indent !== 0)
       );
     });
+
+    const firstContentIndex = paragraphs.findIndex(({ text }) => normalize(text));
+    let lastContentIndex = -1;
+    for (let index = paragraphs.length - 1; index >= 0; index -= 1) {
+      if (normalize(paragraphs[index].text)) {
+        lastContentIndex = index;
+        break;
+      }
+    }
+    const blankParagraphs = [];
+    for (let index = firstContentIndex + 1; index < lastContentIndex; index += 1) {
+      if (!normalize(paragraphs[index].text)) {
+        const nextContent = paragraphs
+          .slice(index + 1)
+          .find(({ text }) => normalize(text));
+        const nextText = normalize(nextContent?.text);
+        blankParagraphs.push({
+          index,
+          followingHeading: isHeading(nextText) ? nextText : ""
+        });
+      }
+    }
 
     const numberedHeadings = new Map();
     for (const { text } of paragraphs) {
@@ -189,6 +213,13 @@
         message: indented.length
           ? `有 ${indented.length} 个非空段落存在段首空格或首行缩进。`
           : "未发现非空段落的段首空格或首行缩进。"
+      },
+      blankParagraphs: {
+        status: blankParagraphs.length ? "warning" : "pass",
+        message: blankParagraphs.length
+          ? `正文中间发现 ${blankParagraphs.length} 个空段落${blankParagraphs[0].followingHeading ? `，位于“${blankParagraphs[0].followingHeading}”之前` : ""}；按顶格填写要求建议删除。`
+          : "未发现正文中间的空段落。",
+        count: blankParagraphs.length
       },
       numbering: {
         status: duplicateNumbers.length ? "warning" : "pass",
