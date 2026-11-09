@@ -236,7 +236,7 @@
     return {
       status: narrativeTables.length ? "warning" : "pass",
       message: narrativeTables.length
-        ? `报告正文中检测到 ${narrativeTables.length} 个表格${narrativeTables[0].rows && narrativeTables[0].columns ? `（${narrativeTables[0].rows} 行 × ${narrativeTables[0].columns} 列）` : ""}；该部分应为纯文本段落，请移除表格后重新检查。`
+        ? "报告正文中存在表格，请以纯文本的形式提交开题报告的内容，不需要课题来源、课题类型、指导教师、职称/学位、学生姓名、学号、专业、班级等信息。"
         : "未发现包裹报告正文内容的表格。",
       count: narrativeTables.length
     };

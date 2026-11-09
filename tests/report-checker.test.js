@@ -168,7 +168,10 @@ test("flags a table containing report narrative but ignores metadata tables", ()
 
   assert.equal(result.formatting.tables.status, "warning");
   assert.equal(result.formatting.tables.count, 1);
-  assert.match(result.formatting.tables.message, /1 行 × 1 列/);
+  assert.equal(
+    result.formatting.tables.message,
+    "报告正文中存在表格，请以纯文本的形式提交开题报告的内容，不需要课题来源、课题类型、指导教师、职称/学位、学生姓名、学号、专业、班级等信息。"
+  );
 });
 
 test("passes when only form metadata tables are present", () => {
