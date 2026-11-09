@@ -9,7 +9,11 @@
     {
       id: "purpose",
       label: "研究目的",
-      patterns: [/^研究目的(?=$|[：:])/, /^研究(?:设计)?的目的(?=$|[：:])/, /^设计目的(?=$|[：:])/]
+      patterns: [
+        /^研究目的(?=$|[：:])/,
+        /^研究(?:（设计）|\(设计\))?的目的(?=$|[：:])/,
+        /^设计目的(?=$|[：:])/
+      ]
     },
     {
       id: "literature",
@@ -57,6 +61,17 @@
 
   function isHeading(text) {
     return /^[一二三四五六七八九十]+[、.．]\s*\S/.test(normalize(text));
+  }
+
+  function removeTitleNumber(text) {
+    return normalize(text).replace(
+      /^(?:第[一二三四五六七八九十\d]+[章节部分]|[一二三四五六七八九十]+[、.．]|[\d]+[、.．)]|[（(][一二三四五六七八九十\d]+[）)])\s*/,
+      ""
+    );
+  }
+
+  function hasTitleNumber(text) {
+    return /^(?:第[一二三四五六七八九十\d]+[章节部分]|[一二三四五六七八九十]+[、.．]|[\d]+[、.．)]|[（(][一二三四五六七八九十\d]+[）)])\s*/.test(normalize(text));
   }
 
   function getParagraphs(report) {
@@ -206,6 +221,38 @@
     const duplicateNumbers = [...numberedHeadings]
       .filter(([, count]) => count > 1)
       .map(([number]) => number);
+    const findTitle = (patterns) => paragraphs.find(({ text }) =>
+      patterns.some((pattern) => pattern.test(removeTitleNumber(text)))
+    );
+    const combinedContentOutcome = findTitle([/^研究内容与预期成果/]);
+    const numberedTitleChecks = SECTION_CHECKS.filter(({ id }) =>
+      id !== "content" && id !== "outcomes"
+    ).map((section) => ({ label: section.label, patterns: section.patterns }));
+    if (combinedContentOutcome) {
+      numberedTitleChecks.push({
+        label: "研究内容与预期成果",
+        patterns: [/^研究内容与预期成果/]
+      });
+    } else {
+      numberedTitleChecks.push(
+        ...SECTION_CHECKS
+          .filter(({ id }) => id === "content" || id === "outcomes")
+          .map((section) => ({ label: section.label, patterns: section.patterns }))
+      );
+    }
+    const unnumberedTitles = numberedTitleChecks
+      .filter(({ patterns }) => {
+        const paragraph = findTitle(patterns);
+        return paragraph && !hasTitleNumber(paragraph.text);
+      })
+      .map(({ label }) => label);
+    const numberingMessages = [];
+    if (unnumberedTitles.length) {
+      numberingMessages.push(`标题缺少编号：${unnumberedTitles.join("、")}。`);
+    }
+    if (duplicateNumbers.length) {
+      numberingMessages.push(`章节编号重复：${duplicateNumbers.join("、")}。`);
+    }
 
     return {
       indentation: {
@@ -222,10 +269,10 @@
         count: blankParagraphs.length
       },
       numbering: {
-        status: duplicateNumbers.length ? "warning" : "pass",
-        message: duplicateNumbers.length
-          ? `章节编号重复：${duplicateNumbers.join("、")}。`
-          : "未发现重复的中文章节编号。"
+        status: unnumberedTitles.length ? "missing" : duplicateNumbers.length ? "warning" : "pass",
+        message: numberingMessages.length
+          ? numberingMessages.join(" ")
+          : "必备标题均有编号，未发现重复的中文章节编号。"
       }
     };
   }

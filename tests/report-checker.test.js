@@ -53,6 +53,7 @@ test("finds required sections and missing references when citations are present"
   assert.equal(result.sections.every(({ status }) => status === "pass"), true);
   assert.equal(result.references.status, "missing");
   assert.deepEqual(result.references.citedNumbers, [1]);
+  assert.equal(result.formatting.numbering.status, "pass");
   assert.equal(result.status, "needs-attention");
 });
 
@@ -182,4 +183,56 @@ test("passes when only form metadata tables are present", () => {
   });
 
   assert.equal(result.formatting.tables.status, "pass");
+});
+
+test("flags required section titles without numbering", () => {
+  const result = check({
+    text: "研究意义\n正文\n研究（设计）的目的\n正文\n文献综述\n综述正文",
+    paragraphs: [
+      paragraph("研究意义"),
+      paragraph("意义正文"),
+      paragraph("研究（设计）的目的"),
+      paragraph("目的正文"),
+      paragraph("文献综述"),
+      paragraph("综述正文"),
+      paragraph("研究思路"),
+      paragraph("思路正文"),
+      paragraph("研究方法"),
+      paragraph("方法正文"),
+      paragraph("研究内容与预期成果"),
+      paragraph("内容和预期成果正文"),
+      paragraph("时间安排"),
+      paragraph("时间安排正文")
+    ]
+  });
+
+  assert.equal(result.formatting.numbering.status, "missing");
+  assert.match(result.formatting.numbering.message, /研究意义/);
+  assert.match(result.formatting.numbering.message, /研究目的/);
+  assert.equal(result.sections.find(({ id }) => id === "purpose").status, "pass");
+  assert.match(result.formatting.numbering.message, /研究内容与预期成果/);
+});
+
+test("accepts numbered section titles including an explicit combined content/outcome title", () => {
+  const result = check({
+    text: "一、研究意义\n正文\n二、研究目的\n正文",
+    paragraphs: [
+      paragraph("一、研究意义"),
+      paragraph("意义正文"),
+      paragraph("二、研究目的"),
+      paragraph("目的正文"),
+      paragraph("三、文献综述"),
+      paragraph("综述正文"),
+      paragraph("四、研究思路"),
+      paragraph("思路正文"),
+      paragraph("五、研究方法"),
+      paragraph("方法正文"),
+      paragraph("六、研究内容与预期成果"),
+      paragraph("内容和预期成果正文"),
+      paragraph("七、时间安排"),
+      paragraph("时间安排正文")
+    ]
+  });
+
+  assert.equal(result.formatting.numbering.status, "pass");
 });

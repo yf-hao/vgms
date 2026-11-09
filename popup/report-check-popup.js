@@ -49,7 +49,8 @@
 
     const missingCount =
       result.sections.filter(({ status: itemStatus }) => itemStatus === "missing").length +
-      Number(result.references.status === "missing");
+      Number(result.references.status === "missing") +
+      Number(Object.values(result.formatting).some(({ status: itemStatus }) => itemStatus === "missing"));
     const summary = document.createElement("p");
     summary.className = `report-check-summary${result.status === "needs-attention" ? " needs-attention" : ""}`;
     summary.textContent = result.status === "pass"
@@ -68,7 +69,7 @@
       { label: "顶格填写", ...result.formatting.indentation },
       { label: "空白段落", ...result.formatting.blankParagraphs },
       { label: "正文表格", ...result.formatting.tables },
-      { label: "章节编号", ...result.formatting.numbering }
+      { label: "章节标题编号", ...result.formatting.numbering }
     ]));
   }
 
