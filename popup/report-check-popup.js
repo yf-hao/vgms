@@ -67,6 +67,7 @@
     results.appendChild(renderGroup("格式检查", [
       { label: "顶格填写", ...result.formatting.indentation },
       { label: "空白段落", ...result.formatting.blankParagraphs },
+      { label: "正文表格", ...result.formatting.tables },
       { label: "章节编号", ...result.formatting.numbering }
     ]));
   }

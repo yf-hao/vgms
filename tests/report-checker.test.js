@@ -155,3 +155,28 @@ test("ignores empty paragraphs at the beginning and end of the editor", () => {
 
   assert.equal(result.formatting.blankParagraphs.status, "pass");
 });
+
+test("flags a table containing report narrative but ignores metadata tables", () => {
+  const result = check({
+    text: "研究意义\n正文",
+    paragraphs: [paragraph("研究意义"), paragraph("正文")],
+    tables: [
+      { rows: 4, columns: 8, containsNarrative: false },
+      { rows: 1, columns: 1, containsNarrative: true }
+    ]
+  });
+
+  assert.equal(result.formatting.tables.status, "warning");
+  assert.equal(result.formatting.tables.count, 1);
+  assert.match(result.formatting.tables.message, /1 行 × 1 列/);
+});
+
+test("passes when only form metadata tables are present", () => {
+  const result = check({
+    text: "研究意义\n正文",
+    paragraphs: [paragraph("研究意义"), paragraph("正文")],
+    tables: [{ rows: 4, columns: 8, containsNarrative: false }]
+  });
+
+  assert.equal(result.formatting.tables.status, "pass");
+});

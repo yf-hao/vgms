@@ -230,6 +230,18 @@
     };
   }
 
+  function checkTables(tables) {
+    const narrativeTables = (Array.isArray(tables) ? tables : [])
+      .filter((table) => table?.containsNarrative);
+    return {
+      status: narrativeTables.length ? "warning" : "pass",
+      message: narrativeTables.length
+        ? `报告正文中检测到 ${narrativeTables.length} 个表格${narrativeTables[0].rows && narrativeTables[0].columns ? `（${narrativeTables[0].rows} 行 × ${narrativeTables[0].columns} 列）` : ""}；该部分应为纯文本段落，请移除表格后重新检查。`
+        : "未发现包裹报告正文内容的表格。",
+      count: narrativeTables.length
+    };
+  }
+
   function check(report) {
     const paragraphs = getParagraphs(report);
     const text = normalize(report?.text || paragraphs.map(({ text: value }) => value).join("\n"));
@@ -245,6 +257,7 @@
     });
     const references = checkReferences(paragraphs, text);
     const formatting = checkFormatting(paragraphs);
+    formatting.tables = checkTables(report?.tables);
     const hasIssues =
       sections.some(({ status }) => status !== "pass") ||
       references.status !== "pass" ||

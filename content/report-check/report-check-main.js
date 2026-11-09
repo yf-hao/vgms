@@ -58,12 +58,22 @@
         text: paragraph.innerText || paragraph.textContent || "",
         textIndent: getComputedStyle(paragraph).textIndent
       }));
+    const tables = [...body.querySelectorAll("table")].map((table) => {
+      const tableText = table.innerText || table.textContent || "";
+      return {
+        rows: table.rows.length,
+        columns: Math.max(0, ...[...table.rows].map((row) => row.cells.length)),
+        containsNarrative:
+          !table.querySelector("table") &&
+          /研究意义|研究(?:（设计）|\(设计\))?的目的|文献综述|研究思路|研究方法|研究内容|预期成果|时间安排/.test(tableText)
+      };
+    });
     const text = body.innerText.trim();
     if (!text) {
       throw new Error("报告正文为空或尚未加载完成。");
     }
 
-    return { text, paragraphs };
+    return { text, paragraphs, tables };
   }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
