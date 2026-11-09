@@ -95,7 +95,7 @@
     } catch (error) {
       setStatus(
         error instanceof Error && error.message.includes("Receiving end does not exist")
-          ? "未检测到开题报告页面，请打开 VGMS 的开题报告页面后重试。"
+          ? "未检测到 VGMS 审核页面脚本，请重新加载扩展并刷新审核列表后重试。"
           : error instanceof Error
             ? error.message
             : "检查失败，请刷新 VGMS 页面后重试。",

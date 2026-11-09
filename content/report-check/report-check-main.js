@@ -1,27 +1,57 @@
 (() => {
-  if (window.top !== window || !location.pathname.startsWith("/manage/process/processData/show")) {
+  if (window.top !== window) {
     return;
   }
 
   const namespace = "vgms-report-check";
 
-  function extractReport() {
-    if (!document.body?.innerText.includes("开题报告内容")) {
-      throw new Error("当前页面没有识别到开题报告内容。");
+  function findReportBody() {
+    const pending = [document];
+    const visited = new Set();
+    let foundReportForm = false;
+
+    while (pending.length) {
+      const current = pending.shift();
+      if (!current || visited.has(current)) {
+        continue;
+      }
+      visited.add(current);
+
+      if (current.body?.innerText.includes("开题报告内容")) {
+        foundReportForm = true;
+        const editorFrame = [...current.querySelectorAll("iframe.tox-edit-area__iframe")]
+          .find((frame) => {
+            try {
+              return Boolean(frame.contentDocument?.body?.innerText.trim());
+            } catch {
+              return false;
+            }
+          });
+        const body = editorFrame?.contentDocument?.body;
+        if (body) {
+          return body;
+        }
+      }
+
+      for (const frame of current.querySelectorAll("iframe")) {
+        try {
+          if (frame.contentDocument) {
+            pending.push(frame.contentDocument);
+          }
+        } catch {
+          // Cross-origin frames cannot be inspected; continue looking in accessible frames.
+        }
+      }
     }
 
-    const editorFrame = [...document.querySelectorAll("iframe.tox-edit-area__iframe")]
-      .find((frame) => {
-        try {
-          return Boolean(frame.contentDocument?.body?.innerText.trim());
-        } catch {
-          return false;
-        }
-      });
-    const body = editorFrame?.contentDocument?.body;
-    if (!body) {
-      throw new Error("未能读取报告编辑器，请确认报告正文已加载。");
+    if (foundReportForm) {
+      throw new Error("已找到开题报告表单，但编辑器正文尚未加载，请稍后重试。");
     }
+    throw new Error("当前审核弹窗中没有识别到开题报告内容。");
+  }
+
+  function extractReport() {
+    const body = findReportBody();
 
     const paragraphs = [...body.querySelectorAll("p")]
       .map((paragraph) => ({
