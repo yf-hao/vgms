@@ -46,6 +46,14 @@
           aria-selected="false"
           aria-controls="panel-taskbook"
           tabindex="-1">任务书</button>
+        <button
+          id="tab-report-check"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-report-check"
+          tabindex="-1">开题检查</button>
       </nav>
       <section id="panel-login" role="tabpanel" aria-labelledby="tab-login">
         <label for="login-school">学校</label>
@@ -139,6 +147,16 @@
         </div>
         <p id="taskbook-status" role="status" aria-live="polite"></p>
       </section>
+      <section
+        id="panel-report-check"
+        role="tabpanel"
+        aria-labelledby="tab-report-check"
+        hidden>
+        <p class="privacy-note">只读取当前 VGMS 开题报告页面，在本地检查，不会上传或修改正文。</p>
+        <button id="report-check-run" type="button">检查当前报告</button>
+        <p id="report-check-status" role="status" aria-live="polite"></p>
+        <div id="report-check-results" aria-live="polite" hidden></div>
+      </section>
     </main>
     <script src="panel-mode.js"></script>
     <script src="../shared/topic-review-settings.js"></script>
@@ -146,6 +164,8 @@
     <script src="taskbook-parser.js"></script>
     <script src="../shared/taskbook-store.js"></script>
     <script src="taskbook-popup.js"></script>
+    <script src="../shared/report-checker.js"></script>
+    <script src="report-check-popup.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

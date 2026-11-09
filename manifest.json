@@ -33,6 +33,11 @@
       "run_at": "document_idle"
     },
     {
+      "matches": ["https://vgms.fanyu.com/manage/process/processData/show*"],
+      "js": ["content/report-check/report-check-main.js"],
+      "run_at": "document_idle"
+    },
+    {
       "matches": ["https://vgms.fanyu.com/admin/*"],
       "js": [
         "shared/topic-review-settings.js",

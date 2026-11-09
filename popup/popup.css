@@ -20,13 +20,16 @@ h1 {
 
 .tabs {
   display: flex;
+  overflow-x: auto;
   gap: 4px;
   margin: 0 -16px 12px;
   padding: 0 16px;
   border-bottom: 1px solid #dadce0;
+  scrollbar-width: thin;
 }
 
 .tab {
+  flex: 0 0 auto;
   min-width: 64px;
   border-radius: 4px 4px 0 0;
   background: transparent;
@@ -220,6 +223,76 @@ button.secondary:hover {
 #taskbook-preview {
   margin: 8px 0;
   white-space: pre-wrap;
+}
+
+#report-check-status {
+  min-height: 20px;
+  margin: 10px 0 0;
+  color: #5f6368;
+  font-size: 12px;
+}
+
+#report-check-status.error {
+  color: #b3261e;
+}
+
+#report-check-results {
+  margin-top: 12px;
+}
+
+.report-check-summary {
+  margin: 0 0 12px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #e6f4ea;
+  color: #137333;
+  font-weight: 600;
+}
+
+.report-check-summary.needs-attention {
+  background: #fef7e0;
+  color: #8a5a00;
+}
+
+.report-check-group {
+  margin: 12px 0;
+}
+
+.report-check-group h2 {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+.report-check-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report-check-item {
+  padding: 8px 0;
+  border-top: 1px solid #eceff1;
+}
+
+.report-check-item strong {
+  display: block;
+  font-weight: 600;
+}
+
+.report-check-item p {
+  margin: 3px 0 0;
+  color: #5f6368;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.report-check-item[data-status="pass"] strong {
+  color: #137333;
+}
+
+.report-check-item[data-status="missing"],
+.report-check-item[data-status="warning"] strong {
+  color: #b06000;
 }
 
 .title-row {
