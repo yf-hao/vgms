@@ -5,10 +5,9 @@
 
   const namespace = "vgms-report-check";
 
-  function findReportBody() {
+  function* accessibleDocuments() {
     const pending = [document];
     const visited = new Set();
-    let foundReportForm = false;
 
     while (pending.length) {
       const current = pending.shift();
@@ -16,22 +15,7 @@
         continue;
       }
       visited.add(current);
-
-      if (current.body?.innerText.includes("开题报告内容")) {
-        foundReportForm = true;
-        const editorFrame = [...current.querySelectorAll("iframe.tox-edit-area__iframe")]
-          .find((frame) => {
-            try {
-              return Boolean(frame.contentDocument?.body?.innerText.trim());
-            } catch {
-              return false;
-            }
-          });
-        const body = editorFrame?.contentDocument?.body;
-        if (body) {
-          return body;
-        }
-      }
+      yield current;
 
       for (const frame of current.querySelectorAll("iframe")) {
         try {
@@ -41,6 +25,28 @@
         } catch {
           // Cross-origin frames cannot be inspected; continue looking in accessible frames.
         }
+      }
+    }
+  }
+
+  function findReportBody() {
+    let foundReportForm = false;
+    for (const current of accessibleDocuments()) {
+      if (!current.body?.innerText.includes("开题报告内容")) {
+        continue;
+      }
+      foundReportForm = true;
+      const editorFrame = [...current.querySelectorAll("iframe.tox-edit-area__iframe")]
+        .find((frame) => {
+          try {
+            return Boolean(frame.contentDocument?.body?.innerText.trim());
+          } catch {
+            return false;
+          }
+        });
+      const body = editorFrame?.contentDocument?.body;
+      if (body) {
+        return body;
       }
     }
 
@@ -76,13 +82,89 @@
     return { text, paragraphs, tables };
   }
 
+  function findReviewForm() {
+    for (const current of accessibleDocuments()) {
+      const statusRadios = [...current.querySelectorAll('input[type="radio"][name="status"]')];
+      const commentField = current.querySelector('textarea[name="content"]');
+      const dateField = current.querySelector('input[name="time1"]');
+      if (
+        statusRadios.some((radio) => radio.title === "通过") &&
+        statusRadios.some((radio) => radio.title === "不通过") &&
+        commentField &&
+        dateField
+      ) {
+        return { statusRadios, commentField, dateField };
+      }
+    }
+    throw new Error("未找到审核状态、审核意见或审核时间字段，请确认审核弹窗已打开。");
+  }
+
+  function dispatchFieldEvent(field, type) {
+    const EventConstructor = field.ownerDocument.defaultView.Event;
+    field.dispatchEvent(new EventConstructor(type, { bubbles: true }));
+  }
+
+  function setFieldValue(field, value) {
+    field.focus();
+    field.value = value;
+    dispatchFieldEvent(field, "input");
+    dispatchFieldEvent(field, "change");
+    field.blur();
+    return field.value === value;
+  }
+
+  function selectStatus(radio) {
+    if (!radio.checked) {
+      const visualRadio = radio.nextElementSibling;
+      if (visualRadio?.classList.contains("layui-form-radio")) {
+        visualRadio.click();
+      }
+      if (!radio.checked) {
+        radio.click();
+      }
+      dispatchFieldEvent(radio, "change");
+    }
+    return radio.checked;
+  }
+
+  function fillReviewForm(payload) {
+    if (!["通过", "不通过"].includes(payload?.statusTitle)) {
+      throw new Error("审核状态无效。");
+    }
+    if (typeof payload?.comment !== "string" || !payload.comment.trim()) {
+      throw new Error("审核意见不能为空。");
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(payload?.date || "")) {
+      throw new Error("请先在插件中选择有效的审核日期。");
+    }
+
+    const { statusRadios, commentField, dateField } = findReviewForm();
+    const statusRadio = statusRadios.find((radio) => radio.title === payload.statusTitle);
+    if (!statusRadio) {
+      throw new Error(`审核表单中没有“${payload.statusTitle}”选项。`);
+    }
+
+    const dateSet = setFieldValue(dateField, payload.date);
+    const commentSet = setFieldValue(commentField, payload.comment);
+    const statusSet = selectStatus(statusRadio);
+    if (!dateSet || !commentSet || !statusSet) {
+      throw new Error("部分审核字段未能成功填写，请检查审核表单后手动补全。");
+    }
+
+    return { statusTitle: payload.statusTitle, date: payload.date };
+  }
+
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.namespace !== namespace || message.action !== "extract") {
+    if (message?.namespace !== namespace) {
       return;
     }
 
     try {
-      sendResponse({ ok: true, report: extractReport() });
+      if (message.action === "extract") {
+        sendResponse({ ok: true, report: extractReport() });
+      } else if (message.action === "fill-review") {
+        sendResponse({ ok: true, filled: fillReviewForm(message.payload) });
+      }
     } catch (error) {
       sendResponse({
         ok: false,

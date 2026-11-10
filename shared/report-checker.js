@@ -318,5 +318,30 @@
     };
   }
 
+  function createReviewDecision(result) {
+    const issues = result.sections
+      .filter(({ status }) => status !== "pass")
+      .map(({ label }) => `${label}缺少或未识别到有效内容。`);
+    if (result.references.status !== "pass") {
+      issues.push(result.references.message);
+    }
+
+    for (const key of ["tables", "indentation", "blankParagraphs", "numbering"]) {
+      const formatCheck = result.formatting[key];
+      if (formatCheck?.status !== "pass") {
+        issues.push(formatCheck.message);
+      }
+    }
+
+    return {
+      statusTitle: issues.length ? "不通过" : "通过",
+      comment: issues.length
+        ? issues.map((issue, index) => `${index + 1}. ${issue}`).join("\n")
+        : "通过",
+      issues
+    };
+  }
+
   namespace.check = check;
+  namespace.createReviewDecision = createReviewDecision;
 })();

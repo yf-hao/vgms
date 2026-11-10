@@ -133,7 +133,8 @@ textarea:focus {
 }
 
 input[type="text"],
-input[type="password"] {
+input[type="password"],
+input[type="date"] {
   display: block;
   width: 100%;
   height: 36px;
@@ -145,7 +146,8 @@ input[type="password"] {
 }
 
 input[type="text"]:focus,
-input[type="password"]:focus {
+input[type="password"]:focus,
+input[type="date"]:focus {
   border-color: #1a73e8;
   outline: 2px solid #d2e3fc;
 }
@@ -234,6 +236,27 @@ button.secondary:hover {
 
 #report-check-status.error {
   color: #b3261e;
+}
+
+#report-review-status {
+  min-height: 20px;
+  margin: 8px 0 0;
+  color: #137333;
+  font-size: 12px;
+}
+
+#report-review-status.error {
+  color: #b3261e;
+}
+
+.report-check-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.report-check-actions button {
+  width: 100%;
 }
 
 #report-check-results {

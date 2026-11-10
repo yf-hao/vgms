@@ -3,7 +3,7 @@ const test = require("node:test");
 
 require("../shared/report-checker.js");
 
-const check = globalThis.vgmsReportChecker.check;
+const { check, createReviewDecision } = globalThis.vgmsReportChecker;
 
 function paragraph(text, textIndent = "0px") {
   return { text, textIndent };
@@ -235,4 +235,38 @@ test("accepts numbered section titles including an explicit combined content/out
   });
 
   assert.equal(result.formatting.numbering.status, "pass");
+});
+
+test("builds a pass decision with a concise approval comment", () => {
+  const result = createReviewDecision({
+    sections: [{ label: "研究意义", status: "pass" }],
+    references: { status: "pass", message: "" },
+    formatting: {
+      tables: { status: "pass" },
+      indentation: { status: "pass" },
+      blankParagraphs: { status: "pass" },
+      numbering: { status: "pass" }
+    }
+  });
+
+  assert.equal(result.statusTitle, "通过");
+  assert.equal(result.comment, "通过");
+  assert.deepEqual(result.issues, []);
+});
+
+test("builds a reject decision with numbered issues and no redundant rejection text", () => {
+  const result = createReviewDecision({
+    sections: [{ label: "研究意义", status: "missing" }],
+    references: { status: "missing", message: "未找到参考文献列表。" },
+    formatting: {
+      tables: { status: "warning", message: "报告正文中存在表格。" },
+      indentation: { status: "pass" },
+      blankParagraphs: { status: "pass" },
+      numbering: { status: "pass" }
+    }
+  });
+
+  assert.equal(result.statusTitle, "不通过");
+  assert.equal(result.comment, "1. 研究意义缺少或未识别到有效内容。\n2. 未找到参考文献列表。\n3. 报告正文中存在表格。");
+  assert.equal(result.comment.includes("未通过"), false);
 });

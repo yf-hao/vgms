@@ -1,11 +1,19 @@
 (() => {
   const runButton = document.querySelector("#report-check-run");
+  const fillButton = document.querySelector("#report-review-fill");
+  const reviewDate = document.querySelector("#report-review-date");
   const status = document.querySelector("#report-check-status");
+  const reviewStatus = document.querySelector("#report-review-status");
   const results = document.querySelector("#report-check-results");
 
   function setStatus(message, isError = false) {
     status.textContent = message;
     status.classList.toggle("error", isError);
+  }
+
+  function setReviewStatus(message, isError = false) {
+    reviewStatus.textContent = message;
+    reviewStatus.classList.toggle("error", isError);
   }
 
   function appendText(parent, tag, text, className) {
@@ -73,38 +81,81 @@
     ]));
   }
 
+  async function checkCurrentReport() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) {
+      throw new Error("未找到当前浏览器标签页。");
+    }
+
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      namespace: "vgms-report-check",
+      action: "extract"
+    });
+    if (!response?.ok) {
+      throw new Error(response?.error || "读取报告内容失败。");
+    }
+
+    const result = globalThis.vgmsReportChecker.check(response.report);
+    render(result);
+    return { tab, result };
+  }
+
+  function showError(error, setter) {
+    setter(
+      error instanceof Error && error.message.includes("Receiving end does not exist")
+        ? "未检测到 VGMS 审核页面脚本，请重新加载扩展并刷新审核列表后重试。"
+        : error instanceof Error
+          ? error.message
+          : "操作失败，请刷新 VGMS 页面后重试。",
+      true
+    );
+  }
+
   runButton.addEventListener("click", async () => {
     runButton.disabled = true;
     results.hidden = true;
     setStatus("正在读取并检查当前报告……");
+    setReviewStatus("");
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) {
-        throw new Error("未找到当前浏览器标签页。");
-      }
-
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        namespace: "vgms-report-check",
-        action: "extract"
-      });
-      if (!response?.ok) {
-        throw new Error(response?.error || "读取报告内容失败。");
-      }
-
-      const result = globalThis.vgmsReportChecker.check(response.report);
-      render(result);
+      await checkCurrentReport();
       setStatus("检查结果仅在本地生成；如修改了正文，请重新检查。");
     } catch (error) {
-      setStatus(
-        error instanceof Error && error.message.includes("Receiving end does not exist")
-          ? "未检测到 VGMS 审核页面脚本，请重新加载扩展并刷新审核列表后重试。"
-          : error instanceof Error
-            ? error.message
-            : "检查失败，请刷新 VGMS 页面后重试。",
-        true
-      );
+      showError(error, setStatus);
     } finally {
       runButton.disabled = false;
+    }
+  });
+
+  fillButton.addEventListener("click", async () => {
+    const date = reviewDate.value;
+    if (!date) {
+      reviewDate.focus();
+      setReviewStatus("请先选择审核日期。", true);
+      return;
+    }
+
+    fillButton.disabled = true;
+    setReviewStatus("正在检查报告并填写审核表单……");
+    try {
+      const { tab, result } = await checkCurrentReport();
+      const decision = globalThis.vgmsReportChecker.createReviewDecision(result);
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        namespace: "vgms-report-check",
+        action: "fill-review",
+        payload: { ...decision, date }
+      });
+      if (!response?.ok) {
+        throw new Error(response?.error || "填写审核表单失败。");
+      }
+
+      setStatus("检查结果已更新。");
+      setReviewStatus(
+        `已填写“${response.filled.statusTitle}”、审核意见和日期 ${response.filled.date}。请核对后手动提交。`
+      );
+    } catch (error) {
+      showError(error, setReviewStatus);
+    } finally {
+      fillButton.disabled = false;
     }
   });
 })();
