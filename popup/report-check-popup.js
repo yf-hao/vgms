@@ -1,5 +1,4 @@
 (() => {
-  const runButton = document.querySelector("#report-check-run");
   const fillButton = document.querySelector("#report-review-fill");
   const reviewDate = document.querySelector("#report-review-date");
   const status = document.querySelector("#report-check-status");
@@ -110,21 +109,6 @@
       true
     );
   }
-
-  runButton.addEventListener("click", async () => {
-    runButton.disabled = true;
-    results.hidden = true;
-    setStatus("正在读取并检查当前报告……");
-    setReviewStatus("");
-    try {
-      await checkCurrentReport();
-      setStatus("检查结果仅在本地生成；如修改了正文，请重新检查。");
-    } catch (error) {
-      showError(error, setStatus);
-    } finally {
-      runButton.disabled = false;
-    }
-  });
 
   fillButton.addEventListener("click", async () => {
     const date = reviewDate.value;
