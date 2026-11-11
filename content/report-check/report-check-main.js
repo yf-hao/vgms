@@ -59,7 +59,10 @@
   function extractReport() {
     const body = findReportBody();
 
-    const paragraphs = [...body.querySelectorAll("p")]
+    const paragraphElements = [...body.querySelectorAll("p")];
+    const preformattedElements = [...body.querySelectorAll("pre")];
+    const textElements = paragraphElements.length ? paragraphElements : preformattedElements;
+    const paragraphs = textElements
       .map((paragraph) => ({
         text: paragraph.innerText || paragraph.textContent || "",
         textIndent: getComputedStyle(paragraph).textIndent
@@ -79,7 +82,12 @@
       throw new Error("报告正文为空或尚未加载完成。");
     }
 
-    return { text, paragraphs, tables };
+    return {
+      text,
+      paragraphs,
+      tables,
+      preformattedBlocks: preformattedElements.length
+    };
   }
 
   function findReviewForm() {

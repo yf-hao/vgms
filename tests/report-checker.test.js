@@ -57,6 +57,100 @@ test("finds required sections and missing references when citations are present"
   assert.equal(result.status, "needs-attention");
 });
 
+test("recognizes sections separated by line breaks inside a single paragraph", () => {
+  const lines = [
+    "一、研究意义",
+    "说明本研究的意义和实际价值。",
+    "二、研究目的",
+    "说明本研究的目标。",
+    "三、文献综述",
+    "国内研究方面：已有成果[1]。",
+    "四、研究思路",
+    "说明研究路线。",
+    "五、研究方法",
+    "采用文献研究法开展研究。",
+    "六、研究内容",
+    "说明主要研究内容。",
+    "七、预期成果",
+    "预期完成系统和论文。",
+    "八、时间安排",
+    "2026年10月完成第一阶段任务。",
+    "参考文献",
+    "[1] 作者. 文献标题. 2024."
+  ];
+  const report = {
+    text: lines.join("\n"),
+    paragraphs: [paragraph(lines.join("\n"))]
+  };
+
+  const result = check(report);
+  assert.equal(result.sections.every(({ status }) => status === "pass"), true);
+  assert.equal(result.references.status, "pass");
+  assert.equal(result.formatting.numbering.status, "pass");
+});
+
+test("flags preformatted text while still checking its report content", () => {
+  const lines = [
+    "一、研究意义",
+    "说明研究意义。",
+    "二、研究目的",
+    "说明研究目的。",
+    "三、文献综述",
+    "已有研究[1]。",
+    "四、研究思路",
+    "说明研究思路。",
+    "五、研究方法",
+    "说明研究方法。",
+    "六、研究内容与预期成果",
+    "说明研究内容与预期成果。",
+    "七、时间安排",
+    "说明时间安排。",
+    "参考文献",
+    "[1] 作者. 文献标题. 2024."
+  ];
+  const result = check({
+    text: lines.join("\n"),
+    paragraphs: [paragraph(lines.join("\n"))],
+    preformattedBlocks: 1
+  });
+
+  assert.equal(result.sections.every(({ status }) => status === "pass"), true);
+  assert.equal(result.references.status, "pass");
+  assert.equal(result.formatting.plainText.status, "warning");
+  assert.equal(
+    result.formatting.plainText.message,
+    "报告内容包含多余格式，可能是粘贴时带入的。请清除原有格式后，以纯文本形式重新提交。"
+  );
+  assert.equal(createReviewDecision(result).statusTitle, "不通过");
+  assert.match(createReviewDecision(result).comment, /报告内容包含多余格式/);
+});
+
+test("reports leading content and multiple blank lines as separate issues", () => {
+  const paragraphs = [
+    paragraph("课题名称"),
+    ...Array.from({ length: 72 }, () => paragraph("")),
+    paragraph("一、研究意义"),
+    paragraph("说明研究意义。")
+  ];
+  const result = check({
+    text: paragraphs.map(({ text }) => text).join("\n"),
+    paragraphs
+  });
+  const decision = createReviewDecision(result);
+
+  assert.equal(
+    result.formatting.openingHeading.message,
+    "报告正文第一行应为“一、研究意义”，请删除其前方的多余内容。"
+  );
+  assert.equal(result.formatting.blankParagraphs.count, 72);
+  assert.equal(
+    result.formatting.blankParagraphs.message,
+    "正文中间发现 72 个空段落，请删除多余空行。"
+  );
+  assert.ok(decision.issues.includes(result.formatting.openingHeading.message));
+  assert.ok(decision.issues.includes(result.formatting.blankParagraphs.message));
+});
+
 test("recognizes bibliography entries and flags unmatched citation numbers", () => {
   const report = {
     text: "研究综述引用[1][2]\n参考文献\n[1] 作者. 文献标题. 2024.",
@@ -242,6 +336,8 @@ test("builds a pass decision with a concise approval comment", () => {
     sections: [{ label: "研究意义", status: "pass" }],
     references: { status: "pass", message: "" },
     formatting: {
+      plainText: { status: "pass", message: "" },
+      openingHeading: { status: "pass", message: "" },
       tables: { status: "pass" },
       indentation: { status: "pass" },
       blankParagraphs: { status: "pass" },
@@ -259,6 +355,8 @@ test("builds a reject decision with numbered issues and no redundant rejection t
     sections: [{ label: "研究意义", status: "missing" }],
     references: { status: "missing", message: "未找到参考文献列表。" },
     formatting: {
+      plainText: { status: "pass" },
+      openingHeading: { status: "pass" },
       tables: { status: "warning", message: "报告正文中存在表格。" },
       indentation: { status: "pass" },
       blankParagraphs: { status: "pass" },

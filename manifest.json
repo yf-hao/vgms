@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "VGMS填报助手",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "VGMS 登录与表单填报助手。",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtO/AbiW4crnO1e42fOo+rDibFnV9bGYskmukEI/350f/yXPMEOoaMWsc3oSvqyIIAyZsOqYO1NSBGmNByKzjhbRcy0hvI03q7APlbJNG/pB9V8W3755EsCvYhjw4PeVvMXckE1xChme+ue5f0VkdU/rJC72GQnME1z7jVCVfHvNbk+nvGvH3W8d3/7lm7DcT0edCra3vzenIpfgJNeGw93VFcZ04dxngtKl9RNh6Cg6AXiJUndKQB31gpgnF1243SMwnfdeaOmK9mKLzwkwa/rLInCH3WvspeDIP70yK3/MaN9q1PIQIzcANl7y9p6wIH/kw3N4lYlR9ewWRnIRTPQIDAQAB",
   "permissions": ["storage", "sidePanel"],

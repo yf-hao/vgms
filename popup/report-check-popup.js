@@ -73,6 +73,8 @@
         : ""
     }]));
     results.appendChild(renderGroup("格式检查", [
+      { label: "纯文本格式", ...result.formatting.plainText },
+      { label: "正文开头", ...result.formatting.openingHeading },
       { label: "顶格填写", ...result.formatting.indentation },
       { label: "空白段落", ...result.formatting.blankParagraphs },
       { label: "正文表格", ...result.formatting.tables },

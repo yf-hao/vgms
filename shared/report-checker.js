@@ -76,11 +76,14 @@
 
   function getParagraphs(report) {
     if (Array.isArray(report?.paragraphs)) {
-      return report.paragraphs
-        .map((paragraph) => ({
-          text: String(paragraph?.text ?? ""),
-          textIndent: String(paragraph?.textIndent ?? "0px")
-        }));
+      return report.paragraphs.flatMap((paragraph) =>
+        String(paragraph?.text ?? "")
+          .split(/\r?\n/)
+          .map((text) => ({
+            text,
+            textIndent: String(paragraph?.textIndent ?? "0px")
+          }))
+      );
     }
 
     return String(report?.text ?? "")
@@ -176,7 +179,10 @@
     };
   }
 
-  function checkFormatting(paragraphs) {
+  function checkFormatting(paragraphs, report) {
+    const hasContent = paragraphs.some(({ text }) => normalize(text));
+    const firstLine = normalize(paragraphs[0]?.text);
+    const openingHeadingPattern = /^一[、.．]\s*研究意义[：:]?$/;
     const indented = paragraphs.filter(({ text, textIndent }) => {
       const normalizedText = normalize(text);
       const indent = Number.parseFloat(textIndent);
@@ -253,8 +259,22 @@
     if (duplicateNumbers.length) {
       numberingMessages.push(`章节编号重复：${duplicateNumbers.join("、")}。`);
     }
+    const preformattedBlocks = Number(report?.preformattedBlocks) || 0;
 
     return {
+      plainText: {
+        status: preformattedBlocks ? "warning" : "pass",
+        message: preformattedBlocks
+          ? "报告内容包含多余格式，可能是粘贴时带入的。请清除原有格式后，以纯文本形式重新提交。"
+          : "未发现预格式化文本块。",
+        count: preformattedBlocks
+      },
+      openingHeading: {
+        status: hasContent && !openingHeadingPattern.test(firstLine) ? "warning" : "pass",
+        message: hasContent && !openingHeadingPattern.test(firstLine)
+          ? "报告正文第一行应为“一、研究意义”，请删除其前方的多余内容。"
+          : "报告正文第一行为“一、研究意义”。"
+      },
       indentation: {
         status: indented.length ? "warning" : "pass",
         message: indented.length
@@ -264,7 +284,7 @@
       blankParagraphs: {
         status: blankParagraphs.length ? "warning" : "pass",
         message: blankParagraphs.length
-          ? `正文中间发现 ${blankParagraphs.length} 个空段落${blankParagraphs[0].followingHeading ? `，位于“${blankParagraphs[0].followingHeading}”之前` : ""}；按顶格填写要求建议删除。`
+          ? `正文中间发现 ${blankParagraphs.length} 个空段落${blankParagraphs.length === 1 && blankParagraphs[0].followingHeading ? `，位于“${blankParagraphs[0].followingHeading}”之前` : ""}，请删除多余空行。`
           : "未发现正文中间的空段落。",
         count: blankParagraphs.length
       },
@@ -303,7 +323,7 @@
       };
     });
     const references = checkReferences(paragraphs, text);
-    const formatting = checkFormatting(paragraphs);
+    const formatting = checkFormatting(paragraphs, report);
     formatting.tables = checkTables(report?.tables);
     const hasIssues =
       sections.some(({ status }) => status !== "pass") ||
@@ -326,7 +346,7 @@
       issues.push(result.references.message);
     }
 
-    for (const key of ["tables", "indentation", "blankParagraphs", "numbering"]) {
+    for (const key of ["plainText", "openingHeading", "tables", "indentation", "blankParagraphs", "numbering"]) {
       const formatCheck = result.formatting[key];
       if (formatCheck?.status !== "pass") {
         issues.push(formatCheck.message);
